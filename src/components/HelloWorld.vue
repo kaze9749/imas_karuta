@@ -94,7 +94,7 @@ const audioPlayer = ref(null)
 
 // JSON を読み込み（public/data/idols.json に配置）
 async function fetchIdols() {
-  const response = await fetch('/data/idols.json')
+  const response = await fetch(`${process.env.BASE_URL}data/idols.json`)
   idols.value = await response.json()
 }
 fetchIdols()
@@ -132,7 +132,7 @@ function playCurrentAuto() {
   if (currentIndex.value < randomIdols.value.length) {
     const idol = randomIdols.value[currentIndex.value]
     // 音声ファイルは /audio/{brand}/{code}_short.wav の形式
-    const audioPath = `/audio/${idol.brand}/short/${idol.code}_short.wav`
+    const audioPath = `${process.env.BASE_URL}audio/${idol.brand}/short/${idol.code}_short.wav`
     audioPlayer.value.src = audioPath
     audioPlayer.value.play().catch(err => console.error(err))
   } else {
