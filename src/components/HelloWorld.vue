@@ -165,7 +165,8 @@ function startManualPlayback() {
 function playCurrentManual() {
   if (currentIndex.value < randomIdols.value.length) {
     const idol = randomIdols.value[currentIndex.value]
-    const audioPath = `/audio/${idol.brand}/short/${idol.code}_short.wav`
+    const audioPath = `${process.env.BASE_URL}audio/${idol.brand}/short/${idol.code}_short.wav`
+    audioPlayer.value.src = audioPath
     audioPlayer.value.src = audioPath
     audioPlayer.value.play().catch(err => console.error(err))
   }
