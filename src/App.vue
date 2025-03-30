@@ -1,5 +1,5 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
+  <img alt="Vue logo" src="./assets/karuta.png">
   <ImasKaruta msg="Welcome to Your Vue.js App"/>
 </template>
 
@@ -22,5 +22,11 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+/* 画像をレスポンシブにするスタイル */
+img {
+  max-width: 20%;
+  height: auto;
 }
 </style>
