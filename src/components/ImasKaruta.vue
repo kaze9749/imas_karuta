@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>アイドルフィルタ＆再生アプリ</h1>
+    <h1>アイマスかるた</h1>
     
     <!-- フィルタ条件 -->
     <div class="filter-group">
@@ -350,7 +350,7 @@ input[type="text"] {
 }
 
 .action-btn {
-  background-color: var(--primary-color);
+  background-color: #8dbbff;
   color: #fff;
   border: none;
   padding: 8px 16px;
@@ -370,7 +370,7 @@ input[type="text"] {
 }
 
 .control-btn {
-  background-color: var(--accent-color);
+  background-color: #8dbbff;
   color: #fff;
   border: none;
   padding: 6px 12px;
