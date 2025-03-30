@@ -9,6 +9,8 @@
         <option value="CinderellaGirls">CinderellaGirls</option>
         <option value="ShinyColors">ShinyColors</option>
         <option value="MillionLive!">MillionLive!</option>
+        <option value="Campus">Campus</option>
+        <option value="Others">Others</option>
       </select>
     </div>
     <div>
