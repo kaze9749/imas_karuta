@@ -269,7 +269,7 @@ function playNext() {
 function startPeriodicPlayback() {
   if (randomIdols.value.length === 0) return;
   isPeriodicPlaying.value = true;
-  currentIndex.value = 0;
+
   playCurrentManual();
   periodicTimer = setInterval(() => {
     if (currentIndex.value < randomIdols.value.length - 1) {
