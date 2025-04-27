@@ -83,6 +83,16 @@
       </div>
     </div>
 
+    <!-- ソート(シャッフル)進捗バー -->
+    <div v-if="isShuffling" class="progress-bar">
+      <progress
+        :value="shuffleProgress"
+        max="100"
+        style="width: 100%"
+      ></progress>
+      <span>{{ shuffleProgress }}%</span>
+    </div>
+
     <button class="action-btn" @click="filterIdols">フィルタ実行</button>
 
     <!-- 音声タイプ選択 -->
@@ -151,7 +161,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 
 // idols.json のデータ（public/data/idols.json に配置）
 const idols = ref([]);
@@ -165,6 +175,10 @@ const heightInput = ref(null);
 const heightFilterType = ref("above");
 const birthMonthFilter = ref("");
 const regionFilter = ref("");
+
+// ソート(シャッフル)進捗表示用
+const isShuffling = ref(false);
+const shuffleProgress = ref(0);
 
 // ブランド選択オプション
 const brandOptions = ref({
@@ -261,8 +275,36 @@ function getMaxCountPlaceholder(brand) {
   return count ? count : 0;
 }
 
+async function shuffleArrayWithProgress(array) {
+  const arr = array.slice();
+  const n = arr.length;
+  isShuffling.value = true;
+  shuffleProgress.value = 0;
+  const step = Math.max(1, Math.floor(n / 100));
+
+  // Fisher–Yates シャッフル＋進捗更新
+  for (let i = 0; i < n - 1; i++) {
+    const j = i + Math.floor(Math.random() * (n - i));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    if (i % step === 0) {
+      shuffleProgress.value = Math.min(100, Math.floor((i / (n - 1)) * 100));
+      await nextTick();
+    }
+  }
+
+  // 最後に 100% 更新
+  shuffleProgress.value = 100;
+  await nextTick();
+
+  // ★ここで2秒待機してからバーを隠す★
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  isShuffling.value = false;
+
+  return arr;
+}
+
 // フィルタ実行
-function filterIdols() {
+async function filterIdols() {
   const temp = filteredByOtherCriteria();
   let result = [];
   for (const brand in brandOptions.value) {
@@ -276,7 +318,7 @@ function filterIdols() {
       result = result.concat(group);
     }
   }
-  randomIdols.value = result.sort(() => Math.random() - 0.5);
+  randomIdols.value = await shuffleArrayWithProgress(result);
 }
 
 // 手動再生モード
@@ -452,5 +494,9 @@ audio {
   text-align: center;
   margin: 8px 0;
   font-weight: bold;
+}
+
+.progress-bar {
+  margin: 10px 0;
 }
 </style>
