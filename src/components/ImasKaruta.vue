@@ -107,6 +107,11 @@
         <input type="radio" value="long" v-model="selectedAudioType" /> Long
       </label>
     </div>
+    <br />
+    <label class="delay-input">
+        再生遅延 (ms):
+        <input type="number" v-model.number="startDelayMs" min="0" />
+      </label>
 
     <!-- 現在再生中の表示切替 -->
     <div class="filter-group">
@@ -165,6 +170,7 @@
       <label>
         <input type="checkbox" v-model="isRepeatMode" /> 繰り返し再生モード
       </label>
+
       <label v-if="isRepeatMode">
         繰り返し間隔（秒）:
         <input type="number" v-model.number="repeatIntervalSec" min="1" />
@@ -233,6 +239,9 @@ function validateIndex() {
     currentIndex.value = 0;
   }
 }
+
+// 再生開始遅延 (ms) を外部から指定
+const startDelayMs = ref(100);
 
 // 外部からインデックスを指定
 const props = defineProps({ index: { type: Number, default: 0 } });
@@ -414,12 +423,35 @@ async function filterIdols() {
   isFiltering.value = false;
 }
 
-function playCurrentManual() {
+async function playCurrentManual() {
   if (currentIndex.value < randomIdols.value.length) {
     const idol = randomIdols.value[currentIndex.value];
     const audioPath = `${process.env.BASE_URL}audio/${idol.brand}/${selectedAudioType.value}/${idol.code}_${selectedAudioType.value}.wav`;
+
+    audioPlayer.value.preload = "auto";
     audioPlayer.value.src = audioPath;
-    audioPlayer.value.play().catch((err) => console.error(err));
+
+    // canplaythrough を待つ
+    await new Promise((resolve) => {
+      // すでに十分バッファ済みならすぐ解決
+      if (audioPlayer.value.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+        return resolve();
+      }
+      // そうでなければイベントリスナーで待機
+      audioPlayer.value.addEventListener("canplaythrough", () => resolve(), {
+        once: true,
+      });
+    });
+
+    // 念のため先頭に戻して再生
+    audioPlayer.value.currentTime = 0;
+    // 指定された ms だけ遅延後に再生
+    await new Promise((resolve) => {
+      setTimeout(async () => {
+        await audioPlayer.value.play();
+        resolve();
+      }, startDelayMs.value);
+    });
   }
 }
 
