@@ -299,7 +299,7 @@ const randomIdols = ref([]);
 // 定期再生モードの状態
 const periodicIntervalSec = ref(3);
 const isPeriodicPlaying = ref(false);
-let periodicTimer = null;
+let periodicListener = null;
 
 // 音声タイプの選択（"short" または "long"）
 const selectedAudioType = ref("short");
@@ -478,21 +478,30 @@ function startPeriodicPlayback() {
   if (randomIdols.value.length === 0) return;
   isPeriodicPlaying.value = true;
 
+  // 再生終了後に次の音声を定期再生するハンドラ
+  // （再生が完全に終わってから wait → 次へ移行）
+  periodicListener = () => {
+    setTimeout(() => {
+      if (currentIndex.value < randomIdols.value.length - 1) {
+        currentIndex.value++;
+        playCurrentManual();
+      } else {
+        stopPeriodicPlayback();
+      }
+    }, periodicIntervalSec.value * 1000);
+  };
+  audioPlayer.value?.addEventListener("ended", periodicListener);
+
+  // 最初の再生をスタート
   playCurrentManual();
-  periodicTimer = setInterval(() => {
-    if (currentIndex.value < randomIdols.value.length - 1) {
-      currentIndex.value++;
-      playCurrentManual();
-    } else {
-      stopPeriodicPlayback();
-    }
-  }, periodicIntervalSec.value * 1000);
 }
 
+// 定期再生停止
 function stopPeriodicPlayback() {
-  if (periodicTimer) {
-    clearInterval(periodicTimer);
-    periodicTimer = null;
+  // イベントリスナーを解除
+  if (periodicListener) {
+    audioPlayer.value?.removeEventListener("ended", periodicListener);
+    periodicListener = null;
   }
   isPeriodicPlaying.value = false;
 }
