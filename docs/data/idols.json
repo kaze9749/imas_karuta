@@ -3402,6 +3402,24 @@
       "region": "中部"
     },
     {
+      "brand": "Campus",
+      "code": "sena",
+      "name": "十王 星南",
+      "age": 17,
+      "height": 170,
+      "weight": 54,
+      "bust": 88,
+      "waist": 56,
+      "hip": 86,
+      "bloodType": "A",
+      "zodiac": "いて座",
+      "birthMonth": 12,
+      "birthDay": 7,
+      "hand": "ambidextrous",
+      "hometown": "東京",
+      "region": "関東"
+    },
+    {
       "brand": "Others",
       "code": "kuroi",
       "name": "黒井崇男",
