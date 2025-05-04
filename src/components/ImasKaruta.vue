@@ -93,7 +93,9 @@
       <span>{{ shuffleProgress }}%</span>
     </div>
 
-    <button class="action-btn" @click="filterIdols">フィルタ実行</button>
+    <button class="action-btn" @click="filterIdols" :disabled="isFiltering">
+      フィルタ実行
+    </button>
 
     <!-- 音声タイプ選択 -->
     <div class="filter-group">
@@ -119,17 +121,54 @@
       {{ currentIndex + 1 }} / {{ randomIdols.length }}
     </p>
 
-    <!-- 手動再生モード -->
+    <!-- 再生コントロール -->
     <div v-if="randomIdols.length > 0" class="playback-group">
-      <button class="action-btn" @click="startManualPlayback">
-        手動再生開始
+      <!-- 外部からインデックス指定 -->
+
+      <label class="index-input">
+        再生インデックス:
+        <input
+          type="number"
+          v-model="indexInput"
+          :min="0"
+          :max="randomIdols.length - 1"
+          @blur="validateIndex"
+        />
+      </label>
+      <br />
+
+      <p v-if="showCurrentIdolName">現在再生中: {{ currentIdolName }}</p>
+
+      <button
+        class="control-btn"
+        @click="playPrevious"
+        :disabled="isFiltering || currentIndex === 0"
+      >
+        前のアイドル
       </button>
-      <div v-if="isManualPlaying" class="control-group">
-        <p v-if="showCurrentIdolName">現在再生中: {{ currentIdolName }}</p>
-        <button class="control-btn" @click="playPrevious">前のアイドル</button>
-        <button class="control-btn" @click="replayCurrent">再生</button>
-        <button class="control-btn" @click="playNext">次のアイドル</button>
-      </div>
+      <button
+        class="control-btn"
+        @click="replayCurrent"
+        :disabled="isFiltering"
+      >
+        再生
+      </button>
+      <button
+        class="control-btn"
+        @click="playNext"
+        :disabled="isFiltering || currentIndex === randomIdols.length - 1"
+      >
+        次のアイドル
+      </button>
+      <br />
+      <br />
+      <label>
+        <input type="checkbox" v-model="isRepeatMode" /> 繰り返し再生モード
+      </label>
+      <label v-if="isRepeatMode">
+        繰り返し間隔（秒）:
+        <input type="number" v-model.number="repeatIntervalSec" min="1" />
+      </label>
     </div>
 
     <!-- 定期再生モード -->
@@ -161,7 +200,63 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, nextTick, watch, onMounted } from "vue";
+/* global defineProps, defineEmits */
+
+// 外部インデックス入力用の computed setter/getter
+const indexInput = computed({
+  get() {
+    return currentIndex.value;
+  },
+  set(val) {
+    if (val === "" || val == null) {
+      // 空入力時は 0 にフォールバック
+      currentIndex.value = 0;
+    } else {
+      const num = parseInt(val, 10);
+      if (!isNaN(num)) {
+        const max = randomIdols.value.length - 1;
+        currentIndex.value = Math.min(Math.max(num, 0), max);
+      }
+    }
+  },
+});
+
+// 入力フォーカスアウト時の追加バリデーション
+function validateIndex() {
+  const max = randomIdols.value.length - 1;
+  if (
+    currentIndex.value < 0 ||
+    currentIndex.value > max ||
+    isNaN(currentIndex.value)
+  ) {
+    currentIndex.value = 0;
+  }
+}
+
+// 外部からインデックスを指定
+const props = defineProps({ index: { type: Number, default: 0 } });
+const emit = defineEmits(["update:index"]);
+// フィルタ処理中フラグ
+const isFiltering = ref(false);
+// 繰り返し再生モード
+const isRepeatMode = ref(false);
+// 繰り返し再生間隔（秒）
+const repeatIntervalSec = ref(3);
+// 外部インデックスと同期
+const currentIndex = ref(props.index);
+watch(
+  () => props.index,
+  (val) => (currentIndex.value = val)
+);
+watch(currentIndex, (val) => emit("update:index", val));
+onMounted(() => {
+  audioPlayer.value?.addEventListener("ended", () => {
+    if (isRepeatMode.value) {
+      setTimeout(() => playCurrentManual(), repeatIntervalSec.value * 1000);
+    }
+  });
+});
 
 // idols.json のデータ（public/data/idols.json に配置）
 const idols = ref([]);
@@ -191,10 +286,6 @@ const brandOptions = ref({
 
 // フィルタ実行後のアイドルリスト（ランダム順）
 const randomIdols = ref([]);
-
-// 手動再生モードの状態
-const isManualPlaying = ref(false);
-const currentIndex = ref(0);
 
 // 定期再生モードの状態
 const periodicIntervalSec = ref(3);
@@ -305,6 +396,7 @@ async function shuffleArrayWithProgress(array) {
 
 // フィルタ実行
 async function filterIdols() {
+  isFiltering.value = true;
   const temp = filteredByOtherCriteria();
   let result = [];
   for (const brand in brandOptions.value) {
@@ -319,14 +411,7 @@ async function filterIdols() {
     }
   }
   randomIdols.value = await shuffleArrayWithProgress(result);
-}
-
-// 手動再生モード
-function startManualPlayback() {
-  if (randomIdols.value.length === 0) return;
-  isManualPlaying.value = true;
-  currentIndex.value = 0;
-  playCurrentManual();
+  isFiltering.value = false;
 }
 
 function playCurrentManual() {
