@@ -109,9 +109,9 @@
     </div>
     <br />
     <label class="delay-input">
-        再生遅延 (ms):
-        <input type="number" v-model.number="startDelayMs" min="0" />
-      </label>
+      再生遅延 (ms):
+      <input type="number" v-model.number="startDelayMs" min="0" />
+    </label>
 
     <!-- 現在再生中の表示切替 -->
     <div class="filter-group">
