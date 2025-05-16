@@ -3420,6 +3420,24 @@
       "region": "関東"
     },
     {
+      "brand": "Campus",
+      "code": "misuzu",
+      "name": "秦谷美鈴",
+      "age": 15,
+      "height": 160,
+      "weight": 42,
+      "bust": 73,
+      "waist": 54,
+      "hip": 74,
+      "bloodType": "B",
+      "zodiac": "みずがめ座",
+      "birthMonth": 2,
+      "birthDay": 6,
+      "hand": "右",
+      "hometown": "京都",
+      "region": "近畿"
+    },
+    {
       "brand": "Others",
       "code": "kuroi",
       "name": "黒井崇男",
